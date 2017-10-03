@@ -261,6 +261,9 @@ def experimentHeuristic(position, problem, info={}):
         goal_distance += euclideanHeuristic(ghost[0], problem)
     return
 
+def euclideanDist(xy1, xy2,):
+    "The Euclidean distance of two coordinates"
+    return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
 #####################################################
 # This portion is incomplete.  Time to write code!  #
 #####################################################
@@ -289,13 +292,11 @@ class CornersProblem(search.SearchProblem):
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.startingPosition, [self.corners[0], self.corners[1], self.corners[2], self.corners[3]]
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return len(state[1]) == 0
 
     def getSuccessors(self, state):
         """
@@ -318,7 +319,18 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+            x,y = state[0]
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            if not self.walls[nextx][nexty]:
+                nextPosition = (nextx, nexty)
+                cornersLeft = state[1][:]
+                if nextPosition in cornersLeft:
+                    cornersLeft.remove(nextPosition)
+                nextState = (nextPosition, cornersLeft)
+                cost = 1
+                successors.append( ( nextState, action, cost) )
 
         self._expanded += 1
         return successors
@@ -352,9 +364,32 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    heuristic = 0
+    cornersLeft = state[1][:]
+    referencePoint = state[0]
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    while len(cornersLeft) > 0:
+        closestCorner = closestPoint(referencePoint, cornersLeft)
+        heuristic += euclideanDist(referencePoint, closestCorner)
+        referencePoint = closestCorner
+        cornersLeft.remove(closestCorner)
+
+    return heuristic
+
+
+def closestPoint (fromPoint, candidatesList):
+    if len(candidatesList) == 0:
+        return None
+
+    closestCorner = candidatesList[0]
+    closestCost = euclideanDist(fromPoint, closestCorner)
+    for candidate in candidatesList[1:]:
+        thisCost = euclideanDist(fromPoint, candidate)
+        if closestCost > thisCost:
+            closestCost = thisCost
+            closestCorner = candidate
+
+    return closestCorner
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -444,8 +479,12 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+    if len(foodList) == 0:
+        return 0
+
+    closestFood = closestPoint(position, foodList)
+    return euclideanDist(position, closestFood) + len(foodList)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
