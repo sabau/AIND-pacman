@@ -13,6 +13,7 @@ by Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -65,7 +66,25 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s,s,w,s,w,w,s,w]
+    return [s, s, w, s, w, w, s, w]
+
+
+def graphSearch(problem, frontier):
+    explored = []
+    frontier.push([(problem.getStartState(), "Stop", 0)])
+    while not frontier.isEmpty():
+        path = frontier.pop()
+        s = path[len(path) - 1][0]
+        if problem.isGoalState(s):
+            return [x[1] for x in path][1:]
+
+        if s not in explored:
+            explored.append(s)
+            for step in problem.getSuccessors(s):
+                if step[0] not in explored:
+                    frontier.push(path[:]+[step])
+    return []
+
 
 def depthFirstSearch(problem):
     """
@@ -83,12 +102,8 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    "*** YOUR CODE HERE ***"
-
-    print( "Start:", problem.getStartState())
-    print( "Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print( "Start's successors:", problem.getSuccessors(problem.getStartState()))
-    util.raiseNotDefined()
+    frontier = util.Stack()
+    return graphSearch(problem, frontier)
 
 
 def breadthFirstSearch(problem):
@@ -96,13 +111,16 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    frontier = util.PriorityQueueWithFunction(len)
+    return graphSearch(problem, frontier)
+
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    cost = lambda path: problem.getCostOfActions([x[1] for x in path])
+    frontier = util.PriorityQueueWithFunction(cost)
+    return graphSearch(problem, frontier)
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -111,10 +129,12 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    cost = lambda path: problem.getCostOfActions([x[1] for x in path]) + heuristic(path[len(path) - 1][0], problem)
+    frontier = util.PriorityQueueWithFunction(cost)
+    return graphSearch(problem, frontier)
 
 
 # Abbreviations

@@ -154,6 +154,26 @@ class EightPuzzleState:
         return False
    return True
 
+   # Utilities for comparison and display
+ def __gt__(self, other):
+   return self.countErrors() > other.countErrors()
+ def __lt__(self, other):
+   return self.countErrors() < other.countErrors()
+ def __get__(self, other):
+   return self.countErrors() >= other.countErrors()
+ def __let__(self, other):
+   return self.countErrors() <= other.countErrors()
+
+ def countErrors(self):
+   err = 0
+   current = 0
+   for row in range( 3 ):
+     for col in range( 3 ):
+       if current != self.cells[row][col]:
+         err += 1
+       current += 1
+   return err
+
  def __hash__(self):
    return hash(str(self.cells))
 
