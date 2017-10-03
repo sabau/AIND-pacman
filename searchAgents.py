@@ -366,13 +366,13 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
     heuristic = 0
     cornersLeft = state[1][:]
-    referencePoint = state[0]
+    step = state[0]
 
     while len(cornersLeft) > 0:
-        closestCorner = closestPoint(referencePoint, cornersLeft)
-        heuristic += euclideanDist(referencePoint, closestCorner)
-        referencePoint = closestCorner
-        cornersLeft.remove(closestCorner)
+        next = closestPoint(step, cornersLeft)
+        heuristic += euclideanDist(step, next)
+        step = next
+        cornersLeft.remove(next)
 
     return heuristic
 
